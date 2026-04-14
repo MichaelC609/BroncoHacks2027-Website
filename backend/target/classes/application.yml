@@ -1,6 +1,0 @@
-spring:
-  application:
-    name: broncohacks-portal-backend
-
-server:
-  port: 8080
