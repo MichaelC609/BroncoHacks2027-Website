@@ -1,4 +1,5 @@
 package org.broncohacks.portal;
 
-public class ListTeamsRequest {
+public class PublicUser {
+    
 }

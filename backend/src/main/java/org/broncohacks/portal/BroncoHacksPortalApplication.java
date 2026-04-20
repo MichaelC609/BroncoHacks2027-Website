@@ -11,6 +11,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 
+
+// TODO:
+// Implement DTOs for standardized JSON response for team requests 
+//
 @SpringBootApplication
 public class BroncoHacksPortalApplication {
   //Some placeholder database structure. Replace with PostgreSQL when necessary.
@@ -20,63 +24,84 @@ public class BroncoHacksPortalApplication {
   static Team testTeam = new Team("testTeam");
 
   public static void main(String[] args) {
+    //adds testUser to the database
     databaseUsers.add(testUser);
     ApplicationContext context = SpringApplication.run(BroncoHacksPortalApplication.class, args);
-    System.out.println(databaseUsers.get(0).getUsername());
-  }
+    }
 
   @RestController
   @RequestMapping("/api/teams")
   public class HomeController {
-    ArrayList<Team> teamList = new ArrayList<>();
-    int idCounter = 0;
+
 
     @GetMapping
-    public ResponseEntity<ArrayList<Team>> listTeams(){
-      return ResponseEntity.ok(databaseTeams);
+    public ResponseEntity<TeamResponse> listTeams(){
+
+      boolean successful = true;
+      String message = "Teams listed successfully";
+      List<Team> teamList = databaseTeams;
+      TeamResponse response = new TeamResponse(successful, message, teamList);
+      return ResponseEntity.ok(response);
     }
 
     @PostMapping
-    public ResponseEntity<?> createTeam(@RequestBody String newTeamName){
+    public ResponseEntity<TeamResponse> createTeam(@RequestBody String newTeamName){
+
+      if(newTeamName.isBlank()){
+        TeamResponse error = new TeamResponse(false, "Team name cannot be blank", null);
+        return ResponseEntity.badRequest().body(error);
+      }
+
       for(Team team : databaseTeams){
         if(team.getTeamName().equals(newTeamName)) {
-          return ResponseEntity.badRequest().body("Team name already in use.");
+          TeamResponse error = new TeamResponse (false,"Team name already in use", null);
+          return ResponseEntity.badRequest().body(error);
         }
       }
 
       Team newTeam = new Team(newTeamName);
       databaseTeams.add(newTeam);
-      return ResponseEntity.ok(databaseTeams.get(databaseTeams.size()-1));
+      List<Team> responseData = List.of(newTeam);
+      TeamResponse response = new TeamResponse(true, "New team created successfully", responseData);
+      return ResponseEntity.ok(response);
     }
 
     //The team to be joined's ID is stored in the URL and inserted as a parameter using @PathVariable
     @PostMapping("/{id}/join")
-    public ResponseEntity<?> joinTeam(@PathVariable("id") int joinedTeamID, @RequestBody String newMemberName){
+    public ResponseEntity<TeamResponse> joinTeam(@PathVariable("id") int joinedTeamID, @RequestBody String newMemberName){
       Team teamToJoin = null;
       User userToJoin = null;
       for(Team team : databaseTeams){
         if(team.getTeamID() == joinedTeamID) {
           teamToJoin = team;
+          break;
         }
       }
 
       for(User user : databaseUsers){
         if(user.getUsername().equals(newMemberName)){
           userToJoin = user;
+          break;
         }
       }
 
-      if(teamToJoin == null || userToJoin == null){
-        System.out.println(teamToJoin);
-        System.out.println(userToJoin);
-        return ResponseEntity.notFound().build();
+      if(teamToJoin == null){
+        TeamResponse error = new TeamResponse(false, "Team specified does not exist.", null);
+        return ResponseEntity.badRequest().body(error);
+      }
+
+      if(userToJoin == null){
+        TeamResponse error = new TeamResponse(false, "User specified does not exist.", null);
+        return ResponseEntity.badRequest().body(error);
       }
 
       if(teamToJoin.addMember(userToJoin)){
-        return ResponseEntity.ok(teamToJoin);
+        TeamResponse response = new TeamResponse(true, "User added to team successfully", List.of(teamToJoin));
+        return ResponseEntity.ok(response);
       }
       else{
-        return ResponseEntity.badRequest().body("The requested team is full.");
+        TeamResponse error = new TeamResponse(false, "The requested team is full.", null);
+        return ResponseEntity.badRequest().body(error);
       }
 
     }
