@@ -14,18 +14,18 @@ public class SignInController {
     @PostMapping("/signin")
     public String checkSignIn(@RequestBody SignInRequest request){
 
-        //Checks for a valid email and password
+        //Checks for a valid email and password (as in: user's profile should already exist)
         //POST request done with Postman for testing
-        if(request.getEmail().equals(correctEmail) && request.getPassword().equals(correctPass)){
-            return "Valid Email and Password";
+        if(request.getEmail() == null || request.getPassword() == null){
+            return "Email or Password cannot be empty";
         }
 
-        else if(request.getEmail() == null || request.getPassword() == null){
-            return "Empty Email or Password";
+        else if(request.getEmail().equals(correctEmail) && request.getPassword().equals(correctPass)){
+            return "Login Success";
         }
 
         else{
-            return "Failure: Invalid Email or Password";
+            return "Invalid Email or Password";
         }
     }
 }
