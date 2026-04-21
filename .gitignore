@@ -1,2 +1,6 @@
 .idea/
 backend/target/
+node_modules/
+.next/
+frontend/node_modules/
+frontend/.next/
