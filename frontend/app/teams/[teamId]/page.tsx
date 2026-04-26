@@ -51,8 +51,6 @@ const teams = [
       { id: "11", name: "Mary" },
       { id: "12", name: "Zack" },
       { id: "13", name: "Miguel" },
-      { id: "14", name: "Zoe" },
-      { id: "15", name: "Mili" },
     ],
     lookingFor: "N/A",
   },
@@ -107,10 +105,11 @@ export default function TeamDetailsPage() {
     );
   }
 
-  const handleJoinTeam = () => {
-    const alreadyMember = members.some((member) => member.id === currentUser.id);
+  const isFull = members.length >= 4;
+  const alreadyMember = members.some((member) => member.id === currentUser.id);
 
-    if (alreadyMember) {
+  const handleJoinTeam = () => {
+    if (alreadyMember || isFull) {
       return;
     }
 
@@ -129,6 +128,12 @@ export default function TeamDetailsPage() {
       <p>
         <strong>Looking for:</strong> {foundTeam.lookingFor}
       </p>
+      <p>
+        <strong>Status:</strong> {isFull ? "Full" : "Open"}
+      </p>
+      <p>
+        <strong>Members:</strong> {members.length} / 4
+      </p>
 
       <h3>Members</h3>
       <ul>
@@ -139,13 +144,30 @@ export default function TeamDetailsPage() {
         ))}
       </ul>
 
-      <button onClick={handleJoinTeam} style={{ marginTop: "20px" }}>
-        {joined ? "Joined" : "Join Team"}
+      <button
+        onClick={handleJoinTeam}
+        disabled={isFull || alreadyMember}
+        style={{
+          marginTop: "20px",
+          padding: "10px 16px",
+          borderRadius: "8px",
+          border: "1px solid #ccc",
+          cursor: isFull || alreadyMember ? "not-allowed" : "pointer",
+          opacity: isFull || alreadyMember ? 0.6 : 1,
+        }}
+      >
+        {alreadyMember ? "Already Joined" : isFull ? "Team Full" : "Join Team"}
       </button>
 
-      {joined && (
+      {joined && !isFull && (
         <p style={{ marginTop: "12px", color: "green" }}>
           You joined this team.
+        </p>
+      )}
+
+      {isFull && !alreadyMember && (
+        <p style={{ marginTop: "12px", color: "red" }}>
+          This team is full and cannot accept more members.
         </p>
       )}
 
