@@ -3,6 +3,7 @@ package org.broncohacks.portal.signupsigninendpoints;
 public class SignInRequest {
     private String email;
     private String password;
+    private String newPassword;
 
     public String getEmail(){
         return email;
@@ -19,4 +20,14 @@ public class SignInRequest {
     public void setPassword(String password){
         this.password = password;
     }
+
+    //DTO portion for requestPasswordReset
+    public String getNewPassword() {
+        return newPassword;
+    }
+
+    public void setNewPassword(String newPassword) {
+        this.newPassword = newPassword;
+    }
+
 }
