@@ -66,6 +66,7 @@ public class BroncoHacksPortalApplication {
       return ResponseEntity.ok(response);
     }
 
+<<<<<<< Updated upstream
     //The team to be joined's ID is stored in the URL and inserted as a parameter using @PathVariable
     @PostMapping("/{id}/join")
     public ResponseEntity<TeamResponse> joinTeam(@PathVariable("id") int joinedTeamID, @RequestBody String newMemberName){
@@ -73,36 +74,93 @@ public class BroncoHacksPortalApplication {
       User userToJoin = null;
       for(Team team : databaseTeams){
         if(team.getTeamID() == joinedTeamID) {
+=======
+    //Join request body consists of teamCode and newMember (both strings)
+    @PostMapping("/join")
+    public ResponseEntity<TeamResponse> joinTeam(@RequestBody JoinTeamRequest request){
+      Team teamToJoin = null;
+      User userToJoin = null;
+      //Search teams
+      for (Team team : databaseTeams) {
+        if (team.getInviteCode().equals(request.getInviteCode())) {
+>>>>>>> Stashed changes
           teamToJoin = team;
           break;
         }
       }
+<<<<<<< Updated upstream
 
       for(User user : databaseUsers){
         if(user.getUsername().equals(newMemberName)){
+=======
+      System.out.println(teamToJoin);
+      //Search users
+      for (User user : databaseUsers) {
+        if (user.getUsername().equals(request.getNewMemberName())) {
+>>>>>>> Stashed changes
           userToJoin = user;
           break;
         }
       }
-
+      System.out.println(userToJoin);
+      //Invalid invite code
       if(teamToJoin == null){
-        TeamResponse error = new TeamResponse(false, "Team specified does not exist.", null);
+        TeamResponse error = new TeamResponse(false, "Invalid invite code", null);
         return ResponseEntity.badRequest().body(error);
       }
-
+      //User doesn't exist
       if(userToJoin == null){
         TeamResponse error = new TeamResponse(false, "User specified does not exist.", null);
         return ResponseEntity.badRequest().body(error);
       }
-
+      
+      //Successful!
       if(teamToJoin.addMember(userToJoin)){
         TeamResponse response = new TeamResponse(true, "User added to team successfully", List.of(teamToJoin));
         return ResponseEntity.ok(response);
       }
+      //Team is full
       else{
         TeamResponse error = new TeamResponse(false, "The requested team is full.", null);
         return ResponseEntity.badRequest().body(error);
       }
+
+    }
+
+    @PostMapping("/leave")
+    public ResponseEntity<TeamResponse> leaveTeam(@RequestBody LeaveTeamRequest request){
+      Team teamToLeave = null;
+      User userToLeave = null;
+      //Search teams
+      for (Team team : databaseTeams) {
+        if (team.getTeamName().equals(request.getTeamName())) {
+          teamToLeave = team;
+          break;
+        }
+      }
+      System.out.println(teamToLeave);
+      //Search users
+      for (User user : databaseUsers) {
+        if (user.getUsername().equals(request.getUserName())) {
+          userToLeave = user;
+          break;
+        }
+      }
+      System.out.println(userToLeave);
+
+      if(teamToLeave == null){
+        TeamResponse error = new TeamResponse (false,"Team not found", null);
+        return ResponseEntity.badRequest().body(error);
+      }
+      if(userToLeave == null){
+        TeamResponse error = new TeamResponse (false,"User not found", null);
+        return ResponseEntity.badRequest().body(error);
+      }
+
+      teamToLeave.removeMember(userToLeave.getUsername());
+      List<Team> responseData = List.of(teamToLeave);
+      TeamResponse response = new TeamResponse(true, "Left team successfully", responseData);
+      return ResponseEntity.ok(response);
 
     }
 
