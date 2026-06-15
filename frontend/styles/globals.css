@@ -1,5 +1,7 @@
 :root {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #111827;
+  background: #f9fafb;
 }
 
 * {
@@ -9,4 +11,112 @@
 body {
   margin: 0;
   padding: 0;
+}
+
+a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.page-shell {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.page-header {
+  margin-bottom: 24px;
+}
+
+.page-subtitle {
+  color: #6b7280;
+}
+
+.nav-links {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.grid-list {
+  display: grid;
+  gap: 16px;
+}
+
+.form-controls {
+  display: grid;
+  gap: 12px;
+  max-width: 520px;
+  margin-bottom: 24px;
+}
+
+.input,
+.select {
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+}
+
+.button {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #111827;
+  color: white;
+  cursor: pointer;
+}
+
+.button:hover {
+  text-decoration: none;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.status-open {
+  color: #15803d;
+  font-weight: 700;
+}
+
+.status-full {
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.empty-state,
+.error-state,
+.loading-state {
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 20px;
+  background: white;
+}
+
+.skill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.skill-badge {
+  background: #eef2ff;
+  padding: 6px 10px;
+  border-radius: 999px;
 }
