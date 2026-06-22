@@ -1,9 +1,22 @@
 package org.broncohacks.portal;
 
-public class LeaveTeamRequest {
+import jakarta.validation.constraints.NotBlank;
 
+public class LeaveTeamRequest {
+    @NotBlank
     private String teamName;
+    @NotBlank
     private String userName;
+    
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public void setTeamName(String teamName) {
+        this.teamName = teamName;
+    }
+
+
 
     public String getUserName() {
         return userName;

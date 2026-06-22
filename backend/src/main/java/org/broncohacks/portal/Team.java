@@ -64,7 +64,6 @@ public class Team {
     public boolean removeMember(String usernameToRemove){
         for(User member : members){
             if(member.getUsername().equals(usernameToRemove)){
-                member.setTeam(null);
                 members.remove(member);
                 return true;
             }

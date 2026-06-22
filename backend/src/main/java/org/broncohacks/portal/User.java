@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 
 public class User {
-    User(String t_username, String t_pwHash, String t_email){
+    public User(String t_username, String t_pwHash, String t_email){
 
         username = t_username;
         pwHash = t_pwHash;
@@ -15,7 +15,7 @@ public class User {
     private String username;
     private String pwHash;
     private String email;
-
+    private Team team;
     public String getUsername() {
         return username;
     }
