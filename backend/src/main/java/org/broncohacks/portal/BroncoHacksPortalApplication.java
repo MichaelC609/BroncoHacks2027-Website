@@ -1,10 +1,8 @@
 package org.broncohacks.portal;
 
-import org.apache.coyote.Response;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -144,7 +142,45 @@ public class BroncoHacksPortalApplication {
             TeamResponse response = new TeamResponse(true, "Left team successfully", responseData);
             return ResponseEntity.ok(response);
         }
+
+        // The team to be joined's ID is stored in the URL and inserted as a parameter
+        // using @PathVariable
+        @PostMapping("/{id}/join")
+        public ResponseEntity<TeamResponse> joinTeamById(@PathVariable("id") int joinedTeamID, @RequestBody String newMemberName) {
+            Team teamToJoin = null;
+            User userToJoin = null;
+            for (Team team : databaseTeams) {
+                if (team.getTeamID() == joinedTeamID) {
+                    teamToJoin = team;
+                    break;
+                }
+            }
+
+            for (User user : databaseUsers) {
+                if (user.getUsername().equals(newMemberName)) {
+                    userToJoin = user;
+                    break;
+                }
+            }
+
+            if (teamToJoin == null) {
+                TeamResponse error = new TeamResponse(false, "Team specified does not exist.", null);
+                return ResponseEntity.badRequest().body(error);
+            }
+
+            if (userToJoin == null) {
+                TeamResponse error = new TeamResponse(false, "User specified does not exist.", null);
+                return ResponseEntity.badRequest().body(error);
+            }
+
+            if (teamToJoin.addMember(userToJoin)) {
+                TeamResponse response = new TeamResponse(true, "User added to team successfully", List.of(teamToJoin));
+                return ResponseEntity.ok(response);
+            } else {
+                TeamResponse error = new TeamResponse(false, "The requested team is full.", null);
+                return ResponseEntity.badRequest().body(error);
+            }
+        }
     }
 
-        
 }
