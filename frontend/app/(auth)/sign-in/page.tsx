@@ -27,7 +27,7 @@ export default function SignInPage() {
 
   return (
     <main className="wrapper">
-      <div className="card">
+      <div className="card auth-card">
         {/* Basic Texts */}
         <h1 className="title">Welcome back</h1>
         <p className="subtitle">Sign in to your account to continue</p>
@@ -41,7 +41,7 @@ export default function SignInPage() {
               type="email"
               placeholder="you@example.com"
               autoComplete="email"
-              className="input"
+              className="auth-input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -57,7 +57,7 @@ export default function SignInPage() {
               type="password"
               placeholder="••••••••"
               autoComplete="current-password"
-              className="input"
+              className="auth-input"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
@@ -67,7 +67,7 @@ export default function SignInPage() {
           </div>
 
           {/* Sign In Button */}
-          <button type="submit" className="button" disabled={isLoading}>
+          <button type="submit" className="button auth-button" disabled={isLoading}>
             {isLoading ? "Signing in..." : "Sign in"}
           </button>
         </form>

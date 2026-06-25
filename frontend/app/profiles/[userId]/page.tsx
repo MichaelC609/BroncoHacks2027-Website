@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const users = [
   {
     id: "1",
@@ -190,26 +192,22 @@ const users = [
   },
 ];
 
-export default async function ProfilePage({
-  params,
+function toProfileViewModel(user: (typeof users)[number]) {
+  return {
+    ...user,
+    displayUsername: `@${user.username}`,
+  };
+}
+
+function ProfileCard({
+  user,
 }: {
-  params: Promise<{ userId: string }>;
+  user: ReturnType<typeof toProfileViewModel>;
 }) {
-  const { userId } = await params;
-  const user = users.find((u) => u.id === userId);
-
-  if (!user) {
-    return (
-      <main style={{ padding: "40px" }}>
-        <h1>User Not Found</h1>
-      </main>
-    );
-  }
-
   return (
-    <main style={{ padding: "40px" }}>
+    <section className="card">
       <h1>{user.name}</h1>
-      <p>@{user.username}</p>
+      <p className="page-subtitle">{user.displayUsername}</p>
 
       <p>
         <strong>School:</strong> {user.school}
@@ -218,15 +216,63 @@ export default async function ProfilePage({
         <strong>Major:</strong> {user.major}
       </p>
 
-      <h3>Bio</h3>
+      <h2>Bio</h2>
       <p>{user.bio}</p>
 
-      <h3>Skills</h3>
-      <ul>
+      <h2>Skills</h2>
+      <ul className="skill-list">
         {user.skills.map((skill) => (
-          <li key={skill}>{skill}</li>
+          <li key={skill} className="skill-badge">
+            {skill}
+          </li>
         ))}
       </ul>
+    </section>
+  );
+}
+
+export default async function ProfilePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ userId: string }>;
+  searchParams: Promise<{ teamId?: string }>;
+}) {
+  const { userId } = await params;
+  const { teamId } = await searchParams;
+
+  const rawUser = users.find((user) => user.id === userId);
+
+  if (!rawUser) {
+    return (
+      <main className="page-shell">
+        <section className="error-state">
+          <h1>User Not Found</h1>
+          <p>This profile does not exist yet.</p>
+
+          {teamId ? (
+            <Link href={`/teams/${teamId}`}>← Back to Team</Link>
+          ) : (
+            <Link href="/teams">← Back to Teams</Link>
+          )}
+        </section>
+      </main>
+    );
+  }
+
+  const user = toProfileViewModel(rawUser);
+
+  return (
+    <main className="page-shell">
+      <nav className="nav-links">
+        {teamId ? (
+          <Link href={`/teams/${teamId}`}>← Back to Team</Link>
+        ) : (
+          <Link href="/teams">← Back to Teams</Link>
+        )}
+      </nav>
+
+      <ProfileCard user={user} />
     </main>
   );
 }

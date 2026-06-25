@@ -1,19 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 
-const teams = [
+const TEAM_CAP = 4;
+
+const mockTeams = [
   {
     id: "1",
     name: "Code Broncos",
     description: "We are building a campus networking platform.",
     hackathon: "Bronco Hacks 2027",
     members: [
-      { id: "1", name: "Alex" },
-      { id: "2", name: "Jordan" },
-      { id: "3", name: "Taylor" },
+      { id: "1", name: "Jane" },
+      { id: "2", name: "Michael" },
+      { id: "3", name: "Sofia" },
       { id: "4", name: "Sam" },
     ],
     lookingFor: "Frontend Developer",
@@ -56,24 +58,24 @@ const teams = [
   },
   {
     id: "5",
-    name: "Bug Smaeshers",
-    description: "We are creating an innovative social media platform.",
+    name: "Bug Smashers 2",
+    description: "We are building a hackathon project and need one more teammate.",
     hackathon: "Bronco Hacks 2027",
     members: [
+      { id: "14", name: "Zoe" },
+      { id: "15", name: "Mili" },
       { id: "16", name: "Alias" },
-      { id: "17", name: "Alissa" },
-      { id: "18", name: "Ali" },
     ],
     lookingFor: "Fullstack Developer",
   },
   {
     id: "6",
     name: "Codees",
-    description: "We are building a fitness tracking app.",
+    description: "We are open to anyone who wants to build something cool.",
     hackathon: "Bronco Hacks 2027",
     members: [
-      { id: "19", name: "Miguel" },
-      { id: "20", name: "Logan" },
+      { id: "17", name: "Alissa" },
+      { id: "18", name: "Ali" },
     ],
     lookingFor: "Anyone",
   },
@@ -84,96 +86,207 @@ const currentUser = {
   name: "Ahmad",
 };
 
+function toTeamDetailViewModel(
+  team: (typeof mockTeams)[number],
+  memberCount: number
+) {
+  const isFull = memberCount >= TEAM_CAP;
+
+  return {
+    ...team,
+    memberCount,
+    maxMembers: TEAM_CAP,
+    isFull,
+    statusLabel: isFull ? "Full" : "Open",
+  };
+}
+
+function MemberList({
+  members,
+  teamId,
+}: {
+  members: { id: string; name: string }[];
+  teamId: string;
+}) {
+  if (members.length === 0) {
+    return <p className="empty-state">No members yet.</p>;
+  }
+
+  return (
+    <ul>
+      {members.map((member) => (
+        <li key={member.id}>
+          <Link href={`/profiles/${member.id}?teamId=${teamId}`}>
+            {member.name}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default function TeamDetailsPage() {
   const params = useParams();
   const teamId = params.teamId as string;
 
   const foundTeam = useMemo(
-    () => teams.find((t) => t.id === teamId),
+    () => mockTeams.find((team) => team.id === teamId),
     [teamId]
   );
 
-  const [joined, setJoined] = useState(false);
   const [members, setMembers] = useState(foundTeam?.members ?? []);
+const [joined, setJoined] = useState(false);
 
+useEffect(() => {
+  if (!foundTeam) return;
+
+  const savedMembers = localStorage.getItem(
+    `team-${foundTeam.id}-members`
+  );
+
+  if (savedMembers) {
+    setMembers(JSON.parse(savedMembers));
+  } else {
+    setMembers(foundTeam.members);
+  }
+
+  setJoined(false);
+}, [foundTeam]);
+
+const [isLoading] = useState(false);
+
+  if (isLoading) {
+    return (
+      <main className="page-shell">
+        <section className="loading-state">
+          <h2>Loading Team...</h2>
+        </section>
+      </main>
+    );
+  }
+  
   if (!foundTeam) {
     return (
-      <main style={{ padding: "40px" }}>
-        <h1>Team Not Found</h1>
-        <Link href="/teams">Back to Teams</Link>
+      <main className="page-shell">
+        <section className="error-state">
+          <h1>Team Not Found</h1>
+          <p>This team does not exist.</p>
+          <Link href="/teams">← Back to Teams</Link>
+        </section>
       </main>
     );
   }
 
-  const isFull = members.length >= 4;
-  const alreadyMember = members.some((member) => member.id === currentUser.id);
+  const team = toTeamDetailViewModel(foundTeam, members.length);
 
-  const handleJoinTeam = () => {
-    if (alreadyMember || isFull) {
+  const alreadyMember = members.some(
+    (member) => member.id === currentUser.id
+  );
+
+  const joinedTeamId = typeof window !== "undefined" ? localStorage.getItem("joinedTeamId") : null;
+
+  const joinedAnotherTeam = joinedTeamId !== null && joinedTeamId !== team.id;
+
+  function handleJoinTeam() {
+    const joinedTeamId = localStorage.getItem("joinedTeamId");
+
+    if (team.isFull || alreadyMember || joinedTeamId) {
       return;
     }
 
-    setMembers([...members, currentUser]);
+    const updatedMembers = [...members, currentUser];
+
+    setMembers(updatedMembers);
+
+    localStorage.setItem(
+      `team-${team.id}-members`,
+      JSON.stringify(updatedMembers)
+    );
+
+    localStorage.setItem("joinedTeamId", team.id);
+
     setJoined(true);
-  };
+  }
+
+  function handleLeaveTeam() {
+    const updatedMembers = members.filter(
+      (member) => member.id !== currentUser.id
+    );
+
+    setMembers(updatedMembers);
+
+    localStorage.setItem(
+      `team-${team.id}-members`,
+      JSON.stringify(updatedMembers)
+    );
+
+    localStorage.removeItem("joinedTeamId");
+
+    setJoined(false);
+  }
 
   return (
-    <main style={{ padding: "40px" }}>
-      <h1>{foundTeam.name}</h1>
-      <p>{foundTeam.description}</p>
+    <main className="page-shell">
+      <nav className="nav-links">
+        <Link href="/">Home</Link>
+        <Link href="/teams">Teams</Link>
+      </nav>
 
-      <p>
-        <strong>Event:</strong> {foundTeam.hackathon}
-      </p>
-      <p>
-        <strong>Looking for:</strong> {foundTeam.lookingFor}
-      </p>
-      <p>
-        <strong>Status:</strong> {isFull ? "Full" : "Open"}
-      </p>
-      <p>
-        <strong>Members:</strong> {members.length} / 4
-      </p>
+      <section className="card">
+        <h1>{team.name}</h1>
+        <p>{team.description}</p>
 
-      <h3>Members</h3>
-      <ul>
-        {members.map((member) => (
-          <li key={member.id}>
-            <Link href={`/profiles/${member.id}`}>{member.name}</Link>
-          </li>
-        ))}
-      </ul>
-
-      <button
-        onClick={handleJoinTeam}
-        disabled={isFull || alreadyMember}
-        style={{
-          marginTop: "20px",
-          padding: "10px 16px",
-          borderRadius: "8px",
-          border: "1px solid #ccc",
-          cursor: isFull || alreadyMember ? "not-allowed" : "pointer",
-          opacity: isFull || alreadyMember ? 0.6 : 1,
-        }}
-      >
-        {alreadyMember ? "Already Joined" : isFull ? "Team Full" : "Join Team"}
-      </button>
-
-      {joined && !isFull && (
-        <p style={{ marginTop: "12px", color: "green" }}>
-          You joined this team.
+        <p>
+          <strong>Event:</strong> {team.hackathon}
         </p>
-      )}
-
-      {isFull && !alreadyMember && (
-        <p style={{ marginTop: "12px", color: "red" }}>
-          This team is full and cannot accept more members.
+        <p>
+          <strong>Looking for:</strong> {team.lookingFor}
         </p>
-      )}
+        <p>
+          <strong>Status:</strong>{" "}
+          <span className={team.isFull ? "status-full" : "status-open"}>
+            {team.statusLabel}
+          </span>
+        </p>
+        <p>
+          <strong>Members:</strong> {team.memberCount} / {team.maxMembers}
+        </p>
 
-      <br />
-      <br />
-      <Link href="/teams">← Back to Teams</Link>
+        <h2>Members</h2>
+        <MemberList members={members} teamId={team.id} />
+
+        {alreadyMember ? (
+  <button className="button" onClick={handleLeaveTeam}>
+    Leave Team
+  </button>
+  ) : (
+    <button
+      className="button"
+      onClick={handleJoinTeam}
+      disabled={team.isFull || joinedAnotherTeam}
+    >
+      {team.isFull
+        ? "Team Full"
+        : joinedAnotherTeam
+          ? "Already in Another Team"
+          : "Join Team"}
+    </button>
+  )}
+
+  {joinedAnotherTeam && (
+    <p className="status-full">
+      You can only join one team at a time.
+    </p>
+  )}
+
+        {joined && <p className="status-open">You joined this team.</p>}
+
+        {team.isFull && !alreadyMember && (
+          <p className="status-full">
+            This team is full and cannot accept more members.
+          </p>
+        )}
+      </section>
     </main>
   );
 }
