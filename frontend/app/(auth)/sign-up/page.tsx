@@ -1,95 +1,112 @@
 "use client";
 
+import { signUp } from "../../../lib/auth-client";
 import { useState } from "react";
+import AuthCard from "../auth/AuthCard";
+import AuthInput from "../auth/AuthInput";
+import AuthSubmitButton from "../auth/AuthSubmitButton";
+import {
+  hasValidationErrors,
+  SubmitState,
+  validateSignUp,
+} from "../auth/validation";
 
 export default function SignUpPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState({name: "", email: "", password: "" });
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const [errors, setErrors] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
 
-    const newErrors = {name:"", email: "", password: "" };
+  const [submitState, setSubmitState] = useState<SubmitState>("idle");
 
-    if (!name) newErrors.name = "Name is required.";
-    if (!email) newErrors.email = "Email is required.";
-    if (!password) newErrors.password = "Password is required.";
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    const newErrors = validateSignUp({
+      name,
+      email,
+      password,
+    });
 
     setErrors(newErrors);
 
-    if (!email || !password) return;
+    if (hasValidationErrors(newErrors)) {
+      setSubmitState("error");
+      return;
+    }
 
-    setIsLoading(true); 
-    await new Promise((resolve) => setTimeout(resolve, 2000)); // fake API call
-    setIsLoading(false);
+    try {
+      setSubmitState("submitting");
+
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      setSubmitState("success");
+    } catch {
+      setSubmitState("error");
+    }
   };
 
   return (
-    <main className="wrapper">
-      <div className="card auth-card">
-        {/* Basic Texts */}
-        <h1 className="title">Hello!</h1>
-        <p className="subtitle">Sign Up</p>
+    <AuthCard title="Hello!" subtitle="Sign Up">
+      <form className="form" onSubmit={handleSubmit}>
+        <AuthInput
+          label="Name"
+          type="text"
+          placeholder="John Doe"
+          autoComplete="name"
+          value={name}
+          onChange={(value) => {
+            setName(value);
+            setSubmitState("idle");
+          }}
+          error={errors.name}
+        />
 
-        {/* inputs */}
-        <form className="form" onSubmit={handleSubmit}>
-          {/* Name Field */}
-          <div className="field">
-            <label className="label">Email</label>
-            <input
-              type="text"
-              placeholder="John Doe"
-              autoComplete="text"
-              className="auth-input"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            {errors.email && (
-              <p style={{ color: "red", fontSize: "0.85rem" }}>{errors.email}</p>
-            )}
-          </div>
+        <AuthInput
+          label="Email"
+          type="email"
+          placeholder="you@example.com"
+          autoComplete="email"
+          value={email}
+          onChange={(value) => {
+            setEmail(value);
+            setSubmitState("idle");
+          }}
+          error={errors.email}
+        />
 
-          {/* Email Field */}
-          <div className="field">
-            <label className="label">Email</label>
-            <input
-              type="email"
-              placeholder="you@example.com"
-              autoComplete="email"
-              className="auth-input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            {errors.email && (
-              <p style={{ color: "red", fontSize: "0.85rem" }}>{errors.email}</p>
-            )}
-          </div>
+        <AuthInput
+          label="Password"
+          type="password"
+          placeholder="••••••••"
+          autoComplete="new-password"
+          value={password}
+          onChange={(value) => {
+            setPassword(value);
+            setSubmitState("idle");
+          }}
+          error={errors.password}
+        />
 
-          {/* Password Field */}
-          <div className="field">
-            <label className="label">Password</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              autoComplete="current-password"
-              className="auth-input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            {errors.password && (
-              <p style={{ color: "red", fontSize: "0.85rem" }}>{errors.password}</p>
-            )}
-          </div>
+        <AuthSubmitButton
+          isSubmitting={submitState === "submitting"}
+          loadingText="Signing Up..."
+          defaultText="Sign Up"
+        />
 
-          {/* Sign In Button */}
-          <button type="submit" className="button auth-button" disabled={isLoading}>
-            {isLoading ? "Signing Up..." : "Sign Up"}
-          </button>
-        </form>
-      </div>
-    </main>
+        {submitState === "success" && (
+          <p className="status-open">Account created successfully.</p>
+        )}
+
+        {submitState === "error" && (
+          <p className="status-full">Please fix the highlighted errors.</p>
+        )}
+      </form>
+    </AuthCard>
   );
 }

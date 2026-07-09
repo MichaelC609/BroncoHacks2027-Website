@@ -114,3 +114,32 @@ Current automated tests verify:
 - Team member IDs are unique within a team
 - Team member IDs are unique across teams
 - Users can only join one team at a time
+
+## Auth UX and Error Handling Notes
+
+The sign-in and sign-up pages use shared auth form components from `app/(auth)/auth`.
+
+### Shared Auth Components
+
+- `AuthCard` provides the shared page/card layout.
+- `AuthInput` provides consistent labels, inputs, and field-level error display.
+- `AuthSubmitButton` provides consistent submit button behavior.
+
+### Validation Model
+
+Validation is handled through shared helper functions in `app/(auth)/auth/validation.ts`.
+
+Current validation rules:
+
+- Email is required.
+- Email must include `@`.
+- Password is required.
+- Password must be at least 8 characters.
+- Sign-up also requires a name.
+
+### Submit Lifecycle States
+
+Auth forms use a typed submit lifecycle:
+
+```ts
+type SubmitState = "idle" | "submitting" | "success" | "error";

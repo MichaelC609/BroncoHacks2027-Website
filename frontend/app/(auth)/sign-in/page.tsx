@@ -1,77 +1,99 @@
 "use client";
 
+import { signIn } from "../../../lib/auth-client";
 import { useState } from "react";
+import AuthCard from "../auth/AuthCard";
+import AuthInput from "../auth/AuthInput";
+import AuthSubmitButton from "../auth/AuthSubmitButton";
+import {
+  hasValidationErrors,
+  SubmitState,
+  validateSignIn,
+} from "../auth/validation";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState({ email: "", password: "" });
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const [errors, setErrors] = useState({
+    email: "",
+    password: "",
+  });
 
-    const newErrors = { email: "", password: "" };
+  const [submitState, setSubmitState] = useState<SubmitState>("idle");
 
-    if (!email) newErrors.email = "Email is required.";
-    if (!password) newErrors.password = "Password is required.";
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    const newErrors = validateSignIn({
+      email,
+      password,
+    });
 
     setErrors(newErrors);
 
-    if (!email || !password) return;
+    if (hasValidationErrors(newErrors)) {
+      setSubmitState("error");
+      return;
+    }
 
-    setIsLoading(true); 
-    await new Promise((resolve) => setTimeout(resolve, 2000)); // fake API call
-    setIsLoading(false);
+    try {
+      setSubmitState("submitting");
+
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      setSubmitState("success");
+    } catch {
+      setSubmitState("error");
+    }
   };
 
   return (
-    <main className="wrapper">
-      <div className="card auth-card">
-        {/* Basic Texts */}
-        <h1 className="title">Welcome back</h1>
-        <p className="subtitle">Sign in to your account to continue</p>
+    <AuthCard
+      title="Welcome back"
+      subtitle="Sign in to your account to continue"
+    >
+      <form className="form" onSubmit={handleSubmit}>
+        <AuthInput
+          label="Email"
+          type="email"
+          placeholder="you@example.com"
+          autoComplete="email"
+          value={email}
+          onChange={(value) => {
+            setEmail(value);
+            setSubmitState("idle");
+          }}
+          error={errors.email}
+        />
 
-        {/* inputs */}
-        <form className="form" onSubmit={handleSubmit}>
-          {/* Email Field */}
-          <div className="field">
-            <label className="label">Email</label>
-            <input
-              type="email"
-              placeholder="you@example.com"
-              autoComplete="email"
-              className="auth-input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            {errors.email && (
-              <p style={{ color: "red", fontSize: "0.85rem" }}>{errors.email}</p>
-            )}
-          </div>
+        <AuthInput
+          label="Password"
+          type="password"
+          placeholder="••••••••"
+          autoComplete="current-password"
+          value={password}
+          onChange={(value) => {
+            setPassword(value);
+            setSubmitState("idle");
+          }}
+          error={errors.password}
+        />
 
-          {/* Password Field */}
-          <div className="field">
-            <label className="label">Password</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              autoComplete="current-password"
-              className="auth-input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            {errors.password && (
-              <p style={{ color: "red", fontSize: "0.85rem" }}>{errors.password}</p>
-            )}
-          </div>
+        <AuthSubmitButton
+          isSubmitting={submitState === "submitting"}
+          loadingText="Signing in..."
+          defaultText="Sign in"
+        />
 
-          {/* Sign In Button */}
-          <button type="submit" className="button auth-button" disabled={isLoading}>
-            {isLoading ? "Signing in..." : "Sign in"}
-          </button>
-        </form>
-      </div>
-    </main>
+        {submitState === "success" && (
+          <p className="status-open">Successfully signed in.</p>
+        )}
+
+        {submitState === "error" && (
+          <p className="status-full">Please fix the highlighted errors.</p>
+        )}
+      </form>
+    </AuthCard>
   );
 }

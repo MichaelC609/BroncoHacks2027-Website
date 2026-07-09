@@ -200,3 +200,8 @@ a:hover {
   padding: 6px 10px;
   border-radius: 999px;
 }
+
+.form-error {
+  color: red;
+  font-size: 0.85rem;
+}
