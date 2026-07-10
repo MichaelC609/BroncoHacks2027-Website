@@ -11,8 +11,15 @@ public class SignInController {
     String correctEmail = "jose@gmail.com";
     String correctPass = "1234koopa";
 
+    //keeps track of num. of login attempts
+    int loginAttemptsCounter = 0;
+
     @PostMapping("/signin")
     public String checkSignIn(@RequestBody SignInRequest request){
+        //First check to see if limit reached
+        if(loginAttemptsCounter >= 5){
+            return "Number of Login Attempts Reached";
+        }
 
         //Checks for a valid email and password (as in: user's profile should already exist)
         //POST request done with Postman for testing
@@ -25,6 +32,7 @@ public class SignInController {
         }
 
         else{
+            loginAttemptsCounter++;
             return "Invalid Email or Password";
         }
     }
