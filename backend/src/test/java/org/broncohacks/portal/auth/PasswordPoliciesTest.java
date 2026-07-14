@@ -1,6 +1,5 @@
-package org.broncohacks.portal.auth.test;
+package org.broncohacks.portal.auth;
 
-import org.broncohacks.portal.auth.PasswordPolicies;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 

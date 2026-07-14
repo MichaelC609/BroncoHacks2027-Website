@@ -1,5 +1,6 @@
 package org.broncohacks.portal;
 
+import jakarta.validation.Valid;
 import org.apache.coyote.Response;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -19,7 +20,7 @@ import java.util.List;
 public class BroncoHacksPortalApplication {
     //Some placeholder database structure. Replace with PostgreSQL when necessary.
     public static ArrayList<User> databaseUsers = new ArrayList<User>();
-    static ArrayList<Team> databaseTeams = new ArrayList<Team>();
+    public static ArrayList<Team> databaseTeams = new ArrayList<Team>();
     static User testUser = new User("testUser", "abc", "test@gmail.com");
     static Team testTeam = new Team("testTeam");
 
@@ -33,116 +34,50 @@ public class BroncoHacksPortalApplication {
     @RequestMapping("/api/teams")
     public class HomeController {
 
+        private final TeamService teamService;
+
+        public HomeController(TeamService teamService){this.teamService = teamService;}
 
         @GetMapping
         public ResponseEntity<TeamResponse> listTeams() {
-
-            boolean successful = true;
-            String message = "Teams listed successfully";
-            List<Team> teamList = databaseTeams;
-            TeamResponse response = new TeamResponse(successful, message, teamList);
+            TeamResponse response = teamService.listTeams();
             return ResponseEntity.ok(response);
         }
 
         @PostMapping
-        public ResponseEntity<TeamResponse> createTeam(@RequestBody String newTeamName) {
+        public ResponseEntity<TeamResponse> createTeam(@Valid @RequestBody CreateTeamRequest request) {
+            TeamResponse response = teamService.createTeam(request);
 
-            if (newTeamName.isBlank()) {
-                TeamResponse error = new TeamResponse(false, "Team name cannot be blank", null);
-                return ResponseEntity.badRequest().body(error);
+            if(response.isSuccessful()) {
+                return ResponseEntity.ok(response);
             }
-
-            for (Team team : databaseTeams) {
-                if (team.getTeamName().equals(newTeamName)) {
-                    TeamResponse error = new TeamResponse(false, "Team name already in use", null);
-                    return ResponseEntity.badRequest().body(error);
-                }
+            else{
+                return ResponseEntity.badRequest().body(response);
             }
-
-            Team newTeam = new Team(newTeamName);
-            databaseTeams.add(newTeam);
-            List<Team> responseData = List.of(newTeam);
-            TeamResponse response = new TeamResponse(true, "New team created successfully", responseData);
-            return ResponseEntity.ok(response);
         }
 
         //Join request body consists of inviteCode and newMemberName (both strings)
         @PostMapping("/join")
-        public ResponseEntity<TeamResponse> joinTeam(@RequestBody JoinTeamRequest request) {
-            Team teamToJoin = null;
-            User userToJoin = null;
+        public ResponseEntity<TeamResponse> joinTeam(@Valid @RequestBody JoinTeamRequest request) {
 
-            //Search teams
-            for (Team team : databaseTeams) {
-                if (team.getInviteCode().equals(request.getInviteCode())) {
-                    teamToJoin = team;
-                    break;
+                TeamResponse response = teamService.joinTeam(request);
+                if(response.isSuccessful()) {
+                    return ResponseEntity.ok(response);
                 }
-            }
-
-            //Search users
-            for (User user : databaseUsers) {
-                if (user.getUsername().equals(request.getNewMemberName())) {
-                    userToJoin = user;
-                    break;
+                else{
+                    return ResponseEntity.badRequest().body(response);
                 }
-            }
-
-            //Invalid invite code
-            if (teamToJoin == null) {
-                TeamResponse error = new TeamResponse(false, "Invalid invite code", null);
-                return ResponseEntity.badRequest().body(error);
-            }
-            //User doesn't exist
-            if (userToJoin == null) {
-                TeamResponse error = new TeamResponse(false, "User specified does not exist.", null);
-                return ResponseEntity.badRequest().body(error);
-            }
-
-            //Successful!
-            if (teamToJoin.addMember(userToJoin)) {
-                TeamResponse response = new TeamResponse(true, "User added to team successfully", List.of(teamToJoin));
-                return ResponseEntity.ok(response);
-            }
-            //Team is full
-            else {
-                TeamResponse error = new TeamResponse(false, "The requested team is full.", null);
-                return ResponseEntity.badRequest().body(error);
-            }
         }
 
         @PostMapping("/leave")
-        public ResponseEntity<TeamResponse> leaveTeam(@RequestBody LeaveTeamRequest request) {
-            Team teamToLeave = null;
-            User userToLeave = null;
-
-            for (Team team : databaseTeams) {
-                if (team.getTeamName().equals(request.getTeamName())) {
-                    teamToLeave = team;
-                    break;
-                }
+        public ResponseEntity<TeamResponse> leaveTeam(@Valid @RequestBody LeaveTeamRequest request) {
+            TeamResponse response = teamService.leaveTeam(request);
+            if(response.isSuccessful()) {
+                return ResponseEntity.ok(response);
             }
-
-            for (User user : databaseUsers) {
-                if (user.getUsername().equals(request.getUserName())) {
-                    userToLeave = user;
-                    break;
-                }
+            else{
+                return ResponseEntity.badRequest().body(response);
             }
-
-            if (teamToLeave == null) {
-                TeamResponse error = new TeamResponse(false, "Team not found", null);
-                return ResponseEntity.badRequest().body(error);
-            }
-            if (userToLeave == null) {
-                TeamResponse error = new TeamResponse(false, "User not found", null);
-                return ResponseEntity.badRequest().body(error);
-            }
-
-            teamToLeave.removeMember(userToLeave.getUsername());
-            List<Team> responseData = List.of(teamToLeave);
-            TeamResponse response = new TeamResponse(true, "Left team successfully", responseData);
-            return ResponseEntity.ok(response);
         }
     }
 
