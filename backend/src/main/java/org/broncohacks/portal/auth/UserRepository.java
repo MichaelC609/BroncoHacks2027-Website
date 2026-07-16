@@ -14,7 +14,7 @@ public class UserRepository {
                 .filter(u -> u.getUsername().equals(username))
                 .findFirst();
     }
-
+    
     public void create(User user) {
         BroncoHacksPortalApplication.databaseUsers.add(user);
     }
