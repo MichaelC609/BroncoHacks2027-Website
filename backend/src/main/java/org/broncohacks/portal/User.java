@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Component;
 
-
 public class User {
     public User(String t_username, String t_pwHash, String t_email){
 
@@ -20,7 +19,6 @@ public class User {
         return username;
     }
 
-
     //makes sure that the user's password hash does NOT get revealed in the JSON sent to frontend :skull:
     @JsonIgnore
     public String getPwHash() {
@@ -30,6 +28,5 @@ public class User {
     public String getEmail() {
         return email;
     }
-
 
 }
